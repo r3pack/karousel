@@ -57,15 +57,17 @@ class MockKwinClient {
         this.activities = [Workspace.currentActivity];
     }
 
+    public get maximizeMode() {
+        return (this._maximizedVertically ? MaximizedMode.Vertically : 0) |
+            (this._maximizedHorizontally ? MaximizedMode.Horizontally : 0);
+    }
+
     setMaximize(vertically: boolean, horizontally: boolean) {
         this.windowed = !(vertically || horizontally);
 
         if (vertically === this._maximizedVertically && horizontally === this._maximizedHorizontally) {
             return;
         }
-        this._maximizedVertically = vertically;
-        this._maximizedHorizontally = horizontally;
-
         this.maximizedAboutToChange.fire(
             vertically ? (
                 horizontally ? MaximizedMode.Maximized : MaximizedMode.Vertically
@@ -73,6 +75,9 @@ class MockKwinClient {
                 horizontally ? MaximizedMode.Horizontally : MaximizedMode.Unmaximized
             ),
         );
+
+        this._maximizedVertically = vertically;
+        this._maximizedHorizontally = horizontally;
 
         this.frameGeometry = new MockQmlRect(
             horizontally ? 0             : this.windowedFrameGeometry.x,

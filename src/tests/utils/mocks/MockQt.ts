@@ -1,6 +1,15 @@
 class MockQt {
     public readonly __brand = "Qt";
 
+    public deferTimers = false;
+    private timers: MockQmlTimer[] = [];
+
+    public flushTimers() {
+        for (const timer of this.timers) {
+            timer.firePending();
+        }
+    }
+
     private shortcuts = new Map<string, MockShortcutHandler>();
 
     public point(x: number, y: number) {
@@ -13,7 +22,9 @@ class MockQt {
 
     public createQmlObject(qml: string, parent: QmlObject): QmlObject {
         if (qml.includes("Timer")) {
-            return new MockQmlTimer();
+            const timer = new MockQmlTimer(() => this.deferTimers);
+            this.timers.push(timer);
+            return timer;
         } else if (qml.includes("ShortcutHandler")) {
             const shortcutName = MockQt.extractShortcutName(qml);
             const shortcutHandler = new MockShortcutHandler();

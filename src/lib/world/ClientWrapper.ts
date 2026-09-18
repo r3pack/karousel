@@ -114,7 +114,7 @@ class ClientWrapper {
     }
 
     public getMaximizedMode() {
-        return this.maximizedMode;
+        return this.maximizedMode ?? this.kwinClient.maximizeMode;
     }
 
     public isManipulatingGeometry(newGeometry: QmlRect | null) {

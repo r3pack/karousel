@@ -3,7 +3,7 @@ class WindowRuleEnforcer {
     private readonly preferTiling: ClientMatcher;
     private readonly followCaption: RegExp;
 
-    constructor(windowRules: WindowRule[]) {
+    constructor(windowRules: WindowRule[], private readonly forceTilingForMaximizedWindows = false) {
         const [floatRegex, tileRegex, followCaptionRegex] = WindowRuleEnforcer.createWindowRuleRegexes(windowRules);
         this.preferFloating = new ClientMatcher(floatRegex);
         this.preferTiling = new ClientMatcher(tileRegex);
@@ -18,7 +18,7 @@ class WindowRuleEnforcer {
             kwinClient.managed &&
             kwinClient.pid > -1 &&
             !kwinClient.fullScreen &&
-            !Clients.isFullScreenGeometry(kwinClient) &&
+            (this.forceTilingForMaximizedWindows || !Clients.isFullScreenGeometry(kwinClient)) &&
             !this.preferFloating.matches(kwinClient)
         );
     }

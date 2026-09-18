@@ -67,6 +67,7 @@ interface KwinClient {
     readonly resizeable: boolean;
     readonly fullScreenable: boolean;
     readonly maximizable: boolean;
+    readonly maximizeMode?: MaximizedMode;
     readonly output: Output;
     readonly resourceClass: string;
     readonly dock: boolean;

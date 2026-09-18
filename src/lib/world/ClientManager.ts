@@ -24,7 +24,7 @@ class ClientManager {
             notificationInvalidWindowRules.sendEvent();
             log("failed to parse windowRules:", error);
         }
-        this.windowRuleEnforcer = new WindowRuleEnforcer(parsedWindowRules);
+        this.windowRuleEnforcer = new WindowRuleEnforcer(parsedWindowRules, config.forceTilingForMaximizedWindows);
     }
 
     public addClient(kwinClient: KwinClient) {
@@ -100,6 +100,23 @@ class ClientManager {
             return;
         }
         client.stateManager.setState(() => new ClientState.Tiled(this.world, client, grid), FocusPassing.Type.None);
+    }
+
+    public tileMaximizedFloatingClient(client: ClientWrapper) {
+        const kwinClient = client.kwinClient;
+        if (!this.config.forceTilingForMaximizedWindows ||
+            !(client.stateManager.getState() instanceof ClientState.Floating) ||
+            client.getMaximizedMode() === undefined ||
+            client.getMaximizedMode() === MaximizedMode.Unmaximized ||
+            kwinClient.fullScreen ||
+            !Clients.canTileNow(kwinClient) ||
+            !this.windowRuleEnforcer.shouldTile(kwinClient)) {
+            return;
+        }
+        const desktop = this.desktopManager.getDesktopForClient(kwinClient);
+        if (desktop !== undefined) {
+            this.tileClient(client, desktop.grid);
+        }
     }
 
     public floatClient(client: ClientWrapper) {
@@ -232,6 +249,7 @@ class ClientManager {
 
 namespace ClientManager {
     export interface Config {
+        forceTilingForMaximizedWindows: boolean;
         floatingKeepAbove: boolean;
         cursorFollowsFocus: boolean;
     }

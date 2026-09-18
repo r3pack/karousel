@@ -6,6 +6,7 @@ interface LayoutConfig {
     offScreenOpacity: number;
     stackColumnsByDefault: boolean;
     resizeNeighborColumn: boolean;
+    forceTilingForMaximizedWindows: boolean;
     reMaximize: boolean;
     skipSwitcher: boolean;
     tiledKeepBelow: boolean;

@@ -3,6 +3,7 @@ namespace ClientState {
         private readonly client: ClientWrapper;
         private readonly config: ClientManager.Config;
         private readonly signalManager: SignalManager;
+        private readonly tileOnMaximizeDelayer: Delayer;
 
         constructor(world: World, client: ClientWrapper, config: ClientManager.Config, limitHeight: boolean) {
             this.client = client;
@@ -13,10 +14,22 @@ namespace ClientState {
             if (limitHeight && client.kwinClient.tile === null) {
                 Floating.limitHeight(client);
             }
+            this.tileOnMaximizeDelayer = new Delayer(0, () => {
+                world.do(clientManager => clientManager.tileMaximizedFloatingClient(client));
+            });
             this.signalManager = Floating.initSignalManager(world, client.kwinClient);
+            if (config.forceTilingForMaximizedWindows) {
+                this.signalManager.connect(client.kwinClient.maximizedAboutToChange, mode => {
+                    if (mode !== MaximizedMode.Unmaximized) {
+                        // Finish the maximize operation before changing state and geometry.
+                        this.tileOnMaximizeDelayer.run();
+                    }
+                });
+            }
         }
 
         public destroy(passFocus: FocusPassing.Type) {
+            this.tileOnMaximizeDelayer.destroy();
             this.signalManager.destroy();
         }
 

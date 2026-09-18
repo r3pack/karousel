@@ -12,7 +12,7 @@ class MockQSignal<T extends unknown[]> {
     };
 
     public fire(...args: [...T]) {
-        for (const handler of this.handlers) {
+        for (const handler of Array.from(this.handlers)) {
             handler(...args);
         }
     }

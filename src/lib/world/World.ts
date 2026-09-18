@@ -47,6 +47,7 @@ class World {
             offScreenOpacity: config.offScreenOpacity / 100.0,
             stackColumnsByDefault: config.stackColumnsByDefault,
             resizeNeighborColumn: config.resizeNeighborColumn,
+            forceTilingForMaximizedWindows: config.forceTilingForMaximizedWindows,
             reMaximize: config.reMaximize,
             skipSwitcher: config.skipSwitcher,
             tiledKeepBelow: config.tiledKeepBelow,

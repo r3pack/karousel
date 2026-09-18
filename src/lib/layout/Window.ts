@@ -97,7 +97,7 @@ class Window {
     }
 
     public onMaximizedChanged(maximizedMode: MaximizedMode) {
-        const maximized = maximizedMode !== MaximizedMode.Unmaximized;
+        const maximized = this.client.kwinClient.fullScreen || maximizedMode !== MaximizedMode.Unmaximized;
         this.skipArrange = maximized;
         if (this.column.grid.config.tiledKeepBelow) {
             this.client.kwinClient.keepBelow = !maximized;

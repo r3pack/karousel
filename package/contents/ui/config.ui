@@ -60,6 +60,16 @@
                                             </widget>
                                         </item>
                                         <item>
+                                            <widget class="QCheckBox" name="kcfg_forceTilingForMaximizedWindows">
+                                                <property name="text">
+                                                    <string>Force tiling for maximized windows</string>
+                                                </property>
+                                                <property name="toolTip">
+                                                    <string>Manage maximized windows in the tiled layout. Maximizing a floating window adds it to the layout and expands it normally; restoring it returns it to tiling. Tiling alone does not maximize windows.</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item>
                                             <widget class="QCheckBox" name="kcfg_reMaximize">
                                                 <property name="text">
                                                     <string>Re-maximize tiled windows</string>

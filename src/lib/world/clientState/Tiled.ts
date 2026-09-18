@@ -224,7 +224,13 @@ namespace ClientState {
                 client.kwinClient.skipSwitcher = true;
             }
 
-            if (client.kwinClient.fullScreen) {
+            const maximizedMode = client.getMaximizedMode();
+            const preserveMaximized = config.forceTilingForMaximizedWindows &&
+                maximizedMode !== undefined && maximizedMode !== MaximizedMode.Unmaximized;
+            if (client.kwinClient.fullScreen || preserveMaximized) {
+                if (config.tiledKeepBelow) {
+                    client.kwinClient.keepBelow = false;
+                }
                 if (config.maximizedKeepAbove) {
                     client.kwinClient.keepAbove = true;
                 }
@@ -236,9 +242,15 @@ namespace ClientState {
             }
 
             if (client.kwinClient.tile !== null) {
-                client.setMaximize(false, true); // disable quick tile mode
+                if (config.forceTilingForMaximizedWindows) {
+                    client.kwinClient.tile = null;
+                } else {
+                    client.setMaximize(false, true); // disable quick tile mode
+                }
             }
-            client.setMaximize(false, false);
+            if (!preserveMaximized) {
+                client.setMaximize(false, false);
+            }
         }
 
         private static restoreClientAfterTiling(client: ClientWrapper, config: LayoutConfig, defaultState: Tiled.WindowState, screenSize: QmlRect) {

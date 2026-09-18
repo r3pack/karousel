@@ -140,6 +140,11 @@ const configDef = [
         default: false,
     },
     {
+        name: "forceTilingForMaximizedWindows",
+        type: "Bool",
+        default: false,
+    },
+    {
         name: "reMaximize",
         type: "Bool",
         default: false,

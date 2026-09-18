@@ -15,6 +15,7 @@ interface Config {
     cursorFollowsFocus: boolean;
     stackColumnsByDefault: boolean;
     resizeNeighborColumn: boolean;
+    forceTilingForMaximizedWindows: boolean;
     reMaximize: boolean;
     skipSwitcher: boolean;
     scrollingLazy: boolean;
