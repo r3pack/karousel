@@ -1,5 +1,6 @@
 class PresetWidths {
     private readonly presets: ((tilingAreaWidth: number) => number)[];
+    private static readonly tolerance = 1; // Kwin may round window sizes by 1px with fractional scaling
 
     constructor(presetWidths: string, spacing: number) {
         this.presets = PresetWidths.parsePresetWidths(presetWidths, spacing);
@@ -7,13 +8,13 @@ class PresetWidths {
 
     public next(currentWidth: number, minWidth: number, maxWidth: number, tilingAreaWidth: number) {
         const widths = this.getWidths(minWidth, maxWidth, tilingAreaWidth);
-        const nextIndex = widths.findIndex(width => width > currentWidth);
+        const nextIndex = widths.findIndex(width => width > currentWidth + PresetWidths.tolerance);
         return nextIndex >= 0 ? widths[nextIndex] : widths[0];
     }
 
     public prev(currentWidth: number, minWidth: number, maxWidth: number, tilingAreaWidth: number) {
         const widths = this.getWidths(minWidth, maxWidth, tilingAreaWidth).reverse();
-        const nextIndex = widths.findIndex(width => width < currentWidth);
+        const nextIndex = widths.findIndex(width => width < currentWidth - PresetWidths.tolerance);
         return nextIndex >= 0 ? widths[nextIndex] : widths[0];
     }
 

@@ -44,3 +44,22 @@ tests.register("PresetWidths", 1, () => {
         }
     }
 });
+
+tests.register("PresetWidths rounding tolerance", 1, () => {
+    const tilingAreaWidth = 2856.666666666667; // fractional, like with 1.2x scaling
+    const presetWidths = new PresetWidths("16.66666%, 33.33334%, 50%, 66.66666%, 83.33334%, 100%", 9);
+    const widths = presetWidths.getWidths(40, tilingAreaWidth, tilingAreaWidth);
+    Assert.equal(widths.join(","), "468,946,1423,1901,2379,2856");
+
+    const next = (width: number) => presetWidths.next(width, 40, tilingAreaWidth, tilingAreaWidth);
+    const prev = (width: number) => presetWidths.prev(width, 40, tilingAreaWidth, tilingAreaWidth);
+    for (let i = 0; i < widths.length; i++) {
+        const following = widths[(i + 1) % widths.length];
+        const preceding = widths[(i - 1 + widths.length) % widths.length];
+        for (const delta of [-1, 0, 1]) {
+            const message = `current width ${widths[i] + delta}`;
+            Assert.equal(next(widths[i] + delta), following, { message });
+            Assert.equal(prev(widths[i] + delta), preceding, { message });
+        }
+    }
+});

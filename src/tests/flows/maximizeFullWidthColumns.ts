@@ -123,6 +123,25 @@
         });
     }
 
+    tests.register("Maximize full width: cycling down despite Kwin rounding", 20, () => {
+        const { qtMock, workspaceMock, config, halfWidth, getColumn } = initFeature(config => { config.presetWidths = "25%, 50%, 100%"; });
+        const quarterWidth = Math.floor((tilingArea.width + config.gapsInnerHorizontal) * 0.25 - config.gapsInnerHorizontal);
+        const [client] = workspaceMock.createClientsWithWidths(halfWidth);
+        client.setMaximize(true, true);
+        assertMaximized(client, getColumn(client));
+
+        qtMock.fireShortcut("karousel-cycle-preset-widths-reverse");
+        assertTiled(client, getColumn(client), halfWidth);
+
+        // Kwin snaps the window to physical pixels, making it 1px wider
+        const frame = client.getActualFrameGeometry();
+        client.frameGeometry = new MockQmlRect(frame.x, frame.y, frame.width + 1, frame.height);
+        Assert.equal(getColumn(client).getWidth(), halfWidth + 1);
+
+        qtMock.fireShortcut("karousel-cycle-preset-widths-reverse");
+        assertTiled(client, getColumn(client), quarterWidth);
+    });
+
     tests.register("Maximize full width: disabled", 20, () => {
         const { qtMock, workspaceMock, halfWidth, getColumn } = initFeature(config => { config.maximizeFullWidthColumns = false; });
         const [client] = workspaceMock.createClientsWithWidths(halfWidth);
