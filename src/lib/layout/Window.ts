@@ -76,6 +76,25 @@ class Window {
         }
     }
 
+    public isMaximized() {
+        return this.client.kwinClient.fullScreen || this.client.getMaximizedMode() !== MaximizedMode.Unmaximized;
+    }
+
+    // maximized windows must always have a column of their own
+    public canShareColumn(targetColumn: Column) {
+        if (targetColumn === this.column) {
+            return true;
+        }
+        return !this.isMaximized() && !targetColumn.hasMaximizedWindow();
+    }
+
+    private ensureOwnColumnIfMaximized() {
+        if (this.isMaximized() && this.column.getWindowCount() > 1) {
+            const passFocus = FocusPassing.Type.None;
+            this.moveToColumn(new Column(this.column.grid, this.column), true, passFocus);
+        }
+    }
+
     public isMaximizedHorizontally() {
         const maximizedMode = this.client.getMaximizedMode();
         return this.client.kwinClient.fullScreen ||
@@ -132,6 +151,7 @@ class Window {
         if (this.isFocused()) {
             this.focusedState.maximizedMode = maximizedMode;
         }
+        this.ensureOwnColumnIfMaximized();
         this.column.onWindowMaximizedChanged();
     }
 
@@ -146,6 +166,7 @@ class Window {
         if (this.isFocused()) {
             this.focusedState.fullScreen = fullScreen;
         }
+        this.ensureOwnColumnIfMaximized();
         this.column.onWindowMaximizedChanged();
     }
 

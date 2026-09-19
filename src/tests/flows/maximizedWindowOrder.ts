@@ -33,3 +33,63 @@
         });
     }
 }
+
+{
+    function assertOwnColumns(world: World, clients: MockKwinClient[]) {
+        const columns = clients.map(client => getClientManager(world).findTiledWindow(client)!.column);
+        for (let i = 0; i < columns.length; i++) {
+            Assert.equal(columns[i].getWindowCount(), 1, { message: `client ${i} should have its own column` });
+            if (i > 0) {
+                Assert.assert(columns[i-1].isToTheLeftOf(columns[i]), { message: `client ${i-1} should be left of client ${i}` });
+            }
+        }
+    }
+
+    for (const maximize of ["maximized", "fullScreen"]) {
+        tests.register(`Maximized windows are never stacked (${maximize})`, 20, () => {
+            const config = getDefaultConfig();
+            config.forceTilingForMaximizedWindows = true;
+            config.windowRules = '[{"class":"full-screen-app","tile":true}]';
+            const { qtMock, workspaceMock, world } = init(config);
+            const [a, b, c] = workspaceMock.createClientsWithWidths(300, 300, 300);
+            for (const client of [a, b, c]) {
+                client.resourceClass = "full-screen-app";
+            }
+            function setMaximized(client: MockKwinClient, maximized: boolean) {
+                if (maximize === "maximized") {
+                    client.setMaximize(maximized, maximized);
+                } else {
+                    client.fullScreen = maximized;
+                }
+            }
+
+            // maximized window moving into neighbor columns
+            workspaceMock.activeWindow = b;
+            setMaximized(b, true);
+            qtMock.fireShortcut("karousel-window-move-left");
+            assertOwnColumns(world, [b, a, c]);
+            qtMock.fireShortcut("karousel-window-move-right");
+            assertOwnColumns(world, [a, b, c]);
+            qtMock.fireShortcut("karousel-window-move-right");
+            assertOwnColumns(world, [a, c, b]);
+            qtMock.fireShortcut("karousel-window-move-left");
+            assertOwnColumns(world, [a, b, c]);
+            qtMock.fireShortcut("karousel-window-move-to-column-1");
+            assertOwnColumns(world, [a, b, c]);
+
+            // other window moving into the maximized window's column
+            workspaceMock.activeWindow = c;
+            setMaximized(b, true);
+            qtMock.fireShortcut("karousel-window-move-left");
+            assertOwnColumns(world, [a, c, b]);
+
+            // maximizing a stacked window
+            setMaximized(b, false);
+            workspaceMock.activeWindow = a;
+            qtMock.fireShortcut("karousel-window-move-right");
+            Assert.equal(getClientManager(world).findTiledWindow(a)!.column.getWindowCount(), 2);
+            setMaximized(a, true);
+            assertOwnColumns(world, [c, a, b]);
+        });
+    }
+}

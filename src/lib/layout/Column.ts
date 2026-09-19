@@ -80,6 +80,15 @@ class Column {
         return this.width;
     }
 
+    public hasMaximizedWindow() {
+        for (const window of this.windows.iterator()) {
+            if (window.isMaximized()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private isMaximizedHorizontally() {
         for (const window of this.windows.iterator()) {
             if (window.isMaximizedHorizontally()) {
@@ -298,6 +307,10 @@ class Column {
             this.setWidth(this.width, false); // re-apply width constraints of the new window
         }
 
+        if (window.isMaximizedHorizontally()) {
+            this.grid.onColumnMaximizedChanged(this); // effective width changed
+        }
+
         this.resizeWindows();
 
         if (window.isFocused()) {
@@ -321,6 +334,9 @@ class Column {
             console.assert(this.isEmpty());
             this.destroy(passFocus);
         } else {
+            if (window.isMaximizedHorizontally()) {
+                this.grid.onColumnMaximizedChanged(this); // effective width changed
+            }
             this.resizeWindows();
             if (windowToFocus !== null) {
                 switch (passFocus) {

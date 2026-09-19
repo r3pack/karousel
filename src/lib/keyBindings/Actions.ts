@@ -94,6 +94,11 @@ class Actions {
             if (leftColumn === null) {
                 return;
             }
+            if (!window.canShareColumn(leftColumn)) {
+                // maximized windows can't be stacked, swap columns instead
+                grid.moveColumnLeft(column);
+                return;
+            }
             window.moveToColumn(leftColumn, true, FocusPassing.Type.None);
             grid.desktop.autoAdjustScroll();
         } else {
@@ -108,6 +113,11 @@ class Actions {
             // move from own column into existing column
             const rightColumn = grid.getRightColumn(column);
             if (rightColumn === null) {
+                return;
+            }
+            if (!window.canShareColumn(rightColumn)) {
+                // maximized windows can't be stacked, swap columns instead
+                grid.moveColumnRight(column);
                 return;
             }
             window.moveToColumn(rightColumn, bottom, FocusPassing.Type.None);
@@ -431,7 +441,7 @@ class Actions {
 
     public readonly windowMoveToColumn = (columnIndex: number, cm: ClientManager, dm: DesktopManager, window: Window, column: Column, grid: Grid) => {
         const targetColumn = grid.getColumnAtIndex(columnIndex);
-        if (targetColumn === null) {
+        if (targetColumn === null || !window.canShareColumn(targetColumn)) {
             return;
         }
         window.moveToColumn(targetColumn, true, FocusPassing.Type.None);

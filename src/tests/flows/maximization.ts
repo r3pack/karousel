@@ -88,16 +88,12 @@
 
         {
             function assertWindowed(config: Config, clients: MockKwinClient[]) {
-                Assert.assert(!clients[0].fullScreen);
-                Assert.equal(clients[0].keepBelow, shouldKeepBelow(true));
-                Assert.equal(clients[0].keepAbove, shouldKeepAbove(true));
-                Assert.assert(!clients[1].fullScreen);
-                Assert.equal(clients[1].keepBelow, shouldKeepBelow(true));
-                Assert.equal(clients[1].keepAbove, shouldKeepAbove(true));
-                Assert.assert(!clients[2].fullScreen);
-                Assert.equal(clients[2].keepBelow, shouldKeepBelow(true));
-                Assert.equal(clients[2].keepAbove, shouldKeepAbove(true));
-                Assert.grid(config, tilingArea, [300, 400], [[clients[0]], [clients[1], clients[2]]], true);
+                for (const client of clients) {
+                    Assert.assert(!client.fullScreen);
+                    Assert.equal(client.keepBelow, shouldKeepBelow(true));
+                    Assert.equal(client.keepAbove, shouldKeepAbove(true));
+                }
+                Assert.grid(config, tilingArea, [200, 240, 240], [[clients[0]], [clients[1]], [clients[2]]], true);
             }
 
             function assertFullScreenOrMaximized(clients: MockKwinClient[]) {
@@ -112,37 +108,71 @@
                 Assert.equalRects(clients[2].getActualFrameGeometry(), screen);
             }
 
-            tests.register("Re-maximize disabled " + suffix, 100, () => {
+            for (const reMaximize of [false, true]) {
+                tests.register(`Re-maximize ${reMaximize ? "enabled" : "disabled"} ` + suffix, 100, () => {
+                    const config = getConfig();
+                    config.reMaximize = reMaximize;
+                    const { qtMock, workspaceMock, world } = init(config);
+
+                    const clients = workspaceMock.createClientsWithWidths(200, 240, 240);
+                    assertWindowed(config, clients);
+
+                    runOneOf(
+                        () => { clients[2].fullScreen = true; },
+                        () => { clients[2].setMaximize(true, true); },
+                    );
+                    assertFullScreenOrMaximized(clients);
+
+                    runOneOf(
+                        () => { workspaceMock.activeWindow = clients[0]; },
+                        () => { qtMock.fireShortcut("karousel-focus-1"); },
+                        () => { qtMock.fireShortcut("karousel-focus-start"); },
+                    );
+                    assertWindowed(config, clients);
+
+                    runOneOf(
+                        () => { workspaceMock.activeWindow = clients[2]; },
+                        () => { qtMock.fireShortcut("karousel-focus-3"); },
+                        () => { qtMock.fireShortcut("karousel-focus-end"); },
+                    );
+                    if (reMaximize) {
+                        assertFullScreenOrMaximized(clients);
+                    } else {
+                        assertWindowed(config, clients);
+                        runOneOf(
+                            () => { clients[2].fullScreen = true; },
+                            () => { clients[2].setMaximize(true, true); },
+                        );
+                        assertFullScreenOrMaximized(clients);
+                    }
+
+                    runOneOf(
+                        () => { workspaceMock.activeWindow = clients[1]; },
+                        () => { qtMock.fireShortcut("karousel-focus-2"); },
+                        () => { qtMock.fireShortcut("karousel-focus-left"); },
+                    );
+                    assertWindowed(config, clients);
+
+                    runOneOf(
+                        () => { workspaceMock.activeWindow = clients[2]; },
+                        () => { qtMock.fireShortcut("karousel-focus-3"); },
+                        () => { qtMock.fireShortcut("karousel-focus-right"); },
+                    );
+                    if (reMaximize) {
+                        assertFullScreenOrMaximized(clients);
+                    } else {
+                        assertWindowed(config, clients);
+                    }
+                });
+            }
+
+            tests.register("Maximizing stacked window moves it to own column " + suffix, 100, () => {
                 const config = getConfig();
-                config.reMaximize = false;
                 const { qtMock, workspaceMock, world } = init(config);
 
-                const clients = workspaceMock.createClientsWithWidths(300, 400, 400);
+                const clients = workspaceMock.createClientsWithWidths(200, 240, 240);
                 qtMock.fireShortcut("karousel-window-move-left");
-
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { clients[2].fullScreen = true; },
-                    () => { clients[2].setMaximize(true, true); },
-                );
-                assertFullScreenOrMaximized(clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[0]; },
-                    () => { qtMock.fireShortcut("karousel-focus-1"); },
-                    () => { qtMock.fireShortcut("karousel-focus-left"); },
-                    () => { qtMock.fireShortcut("karousel-focus-start"); },
-                );
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[2]; },
-                    () => { qtMock.fireShortcut("karousel-focus-2"); },
-                    () => { qtMock.fireShortcut("karousel-focus-right"); },
-                    () => { qtMock.fireShortcut("karousel-focus-end"); },
-                );
-                assertWindowed(config, clients);
+                Assert.grid(config, tilingArea, [200, 240], [[clients[0]], [clients[1], clients[2]]], true);
 
                 runOneOf(
                     () => { clients[2].fullScreen = true; },
@@ -150,62 +180,12 @@
                 );
                 assertFullScreenOrMaximized(clients);
 
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[1]; },
-                    () => { qtMock.fireShortcut("karousel-focus-up"); },
-                );
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[2]; },
-                    () => { qtMock.fireShortcut("karousel-focus-down"); },
-                );
-                assertWindowed(config, clients);
-            });
-
-            tests.register("Re-maximize enabled " + suffix, 100, () => {
-                const config = getConfig();
-                config.reMaximize = true;
-                const { qtMock, workspaceMock, world } = init(config);
-
-                const clients = workspaceMock.createClientsWithWidths(300, 400, 400);
-                qtMock.fireShortcut("karousel-window-move-left");
-
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { clients[2].fullScreen = true; },
-                    () => { clients[2].setMaximize(true, true); },
-                );
-                assertFullScreenOrMaximized(clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[0]; },
-                    () => { qtMock.fireShortcut("karousel-focus-1"); },
-                    () => { qtMock.fireShortcut("karousel-focus-left"); },
-                    () => { qtMock.fireShortcut("karousel-focus-start"); },
-                );
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[2]; },
-                    () => { qtMock.fireShortcut("karousel-focus-2"); },
-                    () => { qtMock.fireShortcut("karousel-focus-right"); },
-                    () => { qtMock.fireShortcut("karousel-focus-end"); },
-                );
-                assertFullScreenOrMaximized(clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[1]; },
-                    () => { qtMock.fireShortcut("karousel-focus-up"); },
-                );
-                assertWindowed(config, clients);
-
-                runOneOf(
-                    () => { workspaceMock.activeWindow = clients[2]; },
-                    () => { qtMock.fireShortcut("karousel-focus-down"); },
-                );
-                assertFullScreenOrMaximized(clients);
+                workspaceMock.activeWindow = clients[0];
+                for (const client of clients) {
+                    Assert.assert(!client.fullScreen);
+                    Assert.equal(client.maximizeMode, MaximizedMode.Unmaximized);
+                }
+                Assert.grid(config, tilingArea, [200, 240, 240], [[clients[0]], [clients[1]], [clients[2]]], false);
             });
         }
 
