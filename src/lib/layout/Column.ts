@@ -124,6 +124,9 @@ class Column {
 
     public setWidth(width: number, setPreferred: boolean) {
         width = clamp(width, this.getMinWidth(), this.getMaxWidth());
+        if (!this.grid.isUserResizing()) {
+            width = this.roundToPreset(width);
+        }
         if (!this.isFullWidthValue(width)) {
             for (const window of this.windows.iterator()) {
                 window.restoreWidth = width;
@@ -147,6 +150,31 @@ class Column {
     // same as the "100%" preset width
     public getFullWidth() {
         return Math.floor(this.grid.desktop.tilingArea.width);
+    }
+
+    // with `roundWidthToPreset`, returns the preset width nearest to `width`
+    private roundToPreset(width: number) {
+        if (!this.grid.config.roundWidthToPreset) {
+            return width;
+        }
+        const presetWidths = this.grid.config.getPresetWidths(this.getMinWidth(), this.getMaxWidth(), this.grid.desktop.tilingArea.width);
+        if (presetWidths.length === 0) {
+            return width;
+        }
+        if (this.isFullWidthValue(width)) {
+            return this.getFullWidth(); // keep maximized windows and 100%-width columns
+        }
+        let nearestWidth = presetWidths[0];
+        for (const presetWidth of presetWidths) {
+            if (Math.abs(presetWidth - width) <= Math.abs(nearestWidth - width)) {
+                nearestWidth = presetWidth; // ascending order, so ties go to the larger width
+            }
+        }
+        return nearestWidth;
+    }
+
+    public snapToPreset() {
+        this.setWidth(this.width, true);
     }
 
     public isFullWidth() {

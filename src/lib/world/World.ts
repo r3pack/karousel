@@ -57,6 +57,9 @@ class World {
             resizeNeighborColumn: config.resizeNeighborColumn,
             forceTilingForMaximizedWindows: config.forceTilingForMaximizedWindows,
             maximizeFullWidthColumns: config.maximizeFullWidthColumns,
+            roundWidthToPreset: config.roundWidthToPreset,
+            getPresetWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
+                presetWidths.getWidths(minWidth, maxWidth, tilingAreaWidth),
             getDefaultColumnWidth: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
                 defaultColumnWidth.getWidths(minWidth, maxWidth, tilingAreaWidth)[0],
             reMaximize: config.reMaximize,

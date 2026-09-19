@@ -211,12 +211,35 @@ class Actions {
     };
 
     public readonly columnWidthIncrease = (cm: ClientManager, dm: DesktopManager, window: Window, column: Column, grid: Grid) => {
+        if (grid.config.roundWidthToPreset) {
+            this.stepPresetWidth(column, grid, 1);
+            return;
+        }
         this.config.columnResizer.increaseWidth(column);
     };
 
     public readonly columnWidthDecrease = (cm: ClientManager, dm: DesktopManager, window: Window, column: Column, grid: Grid) => {
+        if (grid.config.roundWidthToPreset) {
+            this.stepPresetWidth(column, grid, -1);
+            return;
+        }
         this.config.columnResizer.decreaseWidth(column);
     };
+
+    // go to the next bigger (direction 1) or smaller (direction -1) preset width, without wrapping around
+    private stepPresetWidth(column: Column, grid: Grid, direction: 1 | -1) {
+        const tolerance = 1; // Kwin may round window sizes by 1px with fractional scaling
+        const widths = grid.config.getPresetWidths(column.getMinWidth(), column.getMaxWidth(), grid.desktop.tilingArea.width);
+        const currentWidth = column.getWidth();
+        const nextWidth = direction > 0 ?
+            widths.find(width => width > currentWidth + tolerance) :
+            widths.reverse().find(width => width < currentWidth - tolerance);
+        if (nextWidth === undefined) {
+            return;
+        }
+        column.setWidth(nextWidth, true);
+        grid.desktop.scrollToColumn(column, false);
+    }
 
     public readonly columnWidthMaximize = (cm: ClientManager, dm: DesktopManager, window: Window, column: Column, grid: Grid) => {
         this.config.columnResizer.maximizeWidth(column);

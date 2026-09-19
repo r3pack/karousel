@@ -150,6 +150,11 @@ const configDef = [
         default: false,
     },
     {
+        name: "roundWidthToPreset",
+        type: "Bool",
+        default: false,
+    },
+    {
         name: "maximizeFullWidthColumns",
         type: "Bool",
         default: false,

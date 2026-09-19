@@ -8,6 +8,8 @@ interface LayoutConfig {
     resizeNeighborColumn: boolean;
     forceTilingForMaximizedWindows: boolean;
     maximizeFullWidthColumns: boolean;
+    roundWidthToPreset: boolean;
+    getPresetWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number) => number[];
     getDefaultColumnWidth: (minWidth: number, maxWidth: number, tilingAreaWidth: number) => number;
     reMaximize: boolean;
     skipSwitcher: boolean;

@@ -18,6 +18,7 @@ interface Config {
     resizeNeighborColumn: boolean;
     forceTilingForMaximizedWindows: boolean;
     maximizeFullWidthColumns: boolean;
+    roundWidthToPreset: boolean;
     reMaximize: boolean;
     skipSwitcher: boolean;
     scrollingLazy: boolean;

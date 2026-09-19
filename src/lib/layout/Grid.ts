@@ -18,6 +18,11 @@ class Grid {
         this.userResize = false;
         this.userResizeFinishedDelayer = new Delayer(50, () => {
             // this delay prevents windows' contents from freezing after resizing
+            if (this.config.roundWidthToPreset) {
+                for (const column of this.columns.iterator()) {
+                    column.snapToPreset();
+                }
+            }
             this.desktop.onLayoutChanged();
             this.desktop.autoAdjustScroll();
             this.desktop.arrange();

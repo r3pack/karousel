@@ -70,6 +70,16 @@
                                             </widget>
                                         </item>
                                         <item>
+                                            <widget class="QCheckBox" name="kcfg_roundWidthToPreset">
+                                                <property name="text">
+                                                    <string>Round window width to the nearest preset</string>
+                                                </property>
+                                                <property name="toolTip">
+                                                    <string>Tiled columns always have one of the preset widths. Any other width (new windows, windows resizing themselves, mouse resizing after release) is changed to the nearest preset. Increasing/decreasing column width steps through the presets.</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item>
                                             <widget class="QCheckBox" name="kcfg_maximizeFullWidthColumns">
                                                 <property name="text">
                                                     <string>Treat maximized windows as 100%-width columns</string>
