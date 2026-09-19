@@ -110,6 +110,11 @@ const configDef = [
         default: "50%, 100%",
     },
     {
+        name: "defaultColumnWidth",
+        type: "String",
+        default: "50%",
+    },
+    {
         name: "verticalResizeStep",
         type: "UInt",
         default: 32,
@@ -141,6 +146,11 @@ const configDef = [
     },
     {
         name: "forceTilingForMaximizedWindows",
+        type: "Bool",
+        default: false,
+    },
+    {
+        name: "maximizeFullWidthColumns",
         type: "Bool",
         default: false,
     },

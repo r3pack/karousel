@@ -20,7 +20,11 @@ test:
 	./run-ts.sh ./src/tests "${PATTERN}"
 
 install: build
-	kpackagetool6 --type=KWin/Script --install=./package || kpackagetool6 --type=KWin/Script --upgrade=./package
+	if kpackagetool6 --type=KWin/Script --show=karousel >/dev/null 2>&1; then \
+		kpackagetool6 --type=KWin/Script --upgrade=./package; \
+	else \
+		kpackagetool6 --type=KWin/Script --install=./package; \
+	fi
 
 uninstall:
 	kpackagetool6 --type=KWin/Script --remove=karousel

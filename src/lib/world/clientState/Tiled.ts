@@ -14,6 +14,7 @@ namespace ClientState {
 
             this.window = window;
             this.signalManager = Tiled.initSignalManager(world, window, grid.config);
+            window.onReady();
         }
 
         public destroy(passFocus: FocusPassing.Type) {
@@ -68,6 +69,13 @@ namespace ClientState {
                     window.onMaximizedChanged(maximizedMode);
                 });
             });
+
+            if (kwinClient.maximizedChanged !== undefined) {
+                manager.connect(kwinClient.maximizedChanged, () => {
+                    // Kwin may have restored the pre-maximize geometry, put the window back into its place
+                    world.do(() => window.column.grid.desktop.forceArrange());
+                });
+            }
 
             let moving = false;
             let resizing = false;
@@ -163,6 +171,7 @@ namespace ClientState {
                     !window.column.grid.isUserResizing() &&
                     !client.isManipulatingGeometry(newGeometry) &&
                     client.getMaximizedMode() === MaximizedMode.Unmaximized &&
+                    (kwinClient.maximizeMode ?? MaximizedMode.Unmaximized) === MaximizedMode.Unmaximized && // Kwin restores the pre-maximize geometry before finishing unmaximization
                     !Clients.isFullScreenGeometry(kwinClient) // not using `kwinClient.fullScreen` because it may not be set yet at this point
                 ) {
                     if (externalFrameGeometryChangedRateLimiter.acquire()) {

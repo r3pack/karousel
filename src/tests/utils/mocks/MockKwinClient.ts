@@ -37,6 +37,7 @@ class MockKwinClient {
     public readonly activitiesChanged = new MockQSignal<[]>();
     public readonly minimizedChanged = new MockQSignal<[]>();
     public readonly maximizedAboutToChange = new MockQSignal<[MaximizedMode]>();
+    public readonly maximizedChanged = new MockQSignal<[]>();
     public readonly captionChanged = new MockQSignal<[]>();
     public readonly tileChanged = new MockQSignal<[]>();
     public readonly interactiveMoveResizeStarted = new MockQSignal<[]>();
@@ -76,15 +77,17 @@ class MockKwinClient {
             ),
         );
 
-        this._maximizedVertically = vertically;
-        this._maximizedHorizontally = horizontally;
-
+        // like Kwin: geometry changes first, then the maximize mode
         this.frameGeometry = new MockQmlRect(
             horizontally ? 0             : this.windowedFrameGeometry.x,
             vertically   ? 0             : this.windowedFrameGeometry.y,
             horizontally ? screen.width  : this.windowedFrameGeometry.width,
             vertically   ? screen.height : this.windowedFrameGeometry.height,
         );
+
+        this._maximizedVertically = vertically;
+        this._maximizedHorizontally = horizontally;
+        this.maximizedChanged.fire();
     }
 
     public get clientGeometry() {

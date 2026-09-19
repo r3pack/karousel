@@ -70,6 +70,16 @@
                                             </widget>
                                         </item>
                                         <item>
+                                            <widget class="QCheckBox" name="kcfg_maximizeFullWidthColumns">
+                                                <property name="text">
+                                                    <string>Treat maximized windows as 100%-width columns</string>
+                                                </property>
+                                                <property name="toolTip">
+                                                    <string>A tiled window alone in a 100%-width column gets maximized, and maximizing a tiled window makes its column 100% wide. Cycling preset widths changes the width of maximized windows. Manually unmaximizing restores the previous width (or the default column width).</string>
+                                                </property>
+                                            </widget>
+                                        </item>
+                                        <item>
                                             <widget class="QCheckBox" name="kcfg_reMaximize">
                                                 <property name="text">
                                                     <string>Re-maximize tiled windows</string>
@@ -440,6 +450,24 @@
                             </item>
 
                             <item row="11" column="0">
+                                <widget class="QLabel" name="label_defaultColumnWidth">
+                                    <property name="text">
+                                        <string>Default column width:</string>
+                                    </property>
+                                    <property name="toolTip">
+                                        <string>Width restored after manually unmaximizing a window that has no previous width (used with "Treat maximized windows as 100%-width columns")</string>
+                                    </property>
+                                </widget>
+                            </item>
+                            <item row="11" column="1">
+                                <widget class="QLineEdit" name="kcfg_defaultColumnWidth">
+                                    <property name="toolTip">
+                                        <string>Single width. Supported units: "px" and "%".</string>
+                                    </property>
+                                </widget>
+                            </item>
+
+                            <item row="12" column="0">
                                 <widget class="QLabel" name="label_verticalResizeStep">
                                     <property name="text">
                                         <string>Vertical resize step size:</string>
@@ -449,7 +477,7 @@
                                     </property>
                                 </widget>
                             </item>
-                            <item row="11" column="1">
+                            <item row="12" column="1">
                                 <widget class="QSpinBox" name="kcfg_verticalResizeStep">
                                     <property name="suffix">
                                         <string> px</string>
@@ -466,14 +494,14 @@
                                 </widget>
                             </item>
 
-                            <item row="12" column="0">
+                            <item row="13" column="0">
                                 <widget class="QLabel" name="label_offScreenOpacity">
                                     <property name="text">
                                         <string>Obscured window opacity:</string>
                                     </property>
                                 </widget>
                             </item>
-                            <item row="12" column="1">
+                            <item row="13" column="1">
                                 <widget class="QSpinBox" name="kcfg_offScreenOpacity">
                                     <property name="suffix">
                                         <string> %</string>

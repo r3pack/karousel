@@ -22,6 +22,14 @@ class World {
             log("failed to parse presetWidths:", error);
         }
 
+        let defaultColumnWidth: PresetWidths;
+        try {
+            defaultColumnWidth = new PresetWidths(config.defaultColumnWidth, config.gapsInnerHorizontal);
+        } catch (error: any) {
+            log("failed to parse defaultColumnWidth:", error);
+            defaultColumnWidth = new PresetWidths("50%", config.gapsInnerHorizontal);
+        }
+
         this.shortcutActions = registerKeyBindings(this, {
             manualScrollStep: config.manualScrollStep,
             presetWidths: presetWidths,
@@ -48,6 +56,9 @@ class World {
             stackColumnsByDefault: config.stackColumnsByDefault,
             resizeNeighborColumn: config.resizeNeighborColumn,
             forceTilingForMaximizedWindows: config.forceTilingForMaximizedWindows,
+            maximizeFullWidthColumns: config.maximizeFullWidthColumns,
+            getDefaultColumnWidth: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
+                defaultColumnWidth.getWidths(minWidth, maxWidth, tilingAreaWidth)[0],
             reMaximize: config.reMaximize,
             skipSwitcher: config.skipSwitcher,
             tiledKeepBelow: config.tiledKeepBelow,

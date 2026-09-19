@@ -5,6 +5,7 @@ class Column {
     private readonly windows: LinkedList<Window>;
     private stacked: boolean;
     private focusTaker: Window|null;
+    private syncingMaximized: boolean;
     private static readonly minWidth = 40;
 
     constructor(grid: Grid, leftColumn: Column|null) {
@@ -13,6 +14,7 @@ class Column {
         this.windows = new LinkedList();
         this.stacked = grid.config.stackColumnsByDefault;
         this.focusTaker = null;
+        this.syncingMaximized = false;
         this.grid = grid;
         this.grid.onColumnAdded(this, leftColumn);
     }
@@ -75,7 +77,7 @@ class Column {
     public getWidth() {
         if (this.isMaximizedHorizontally()) {
             // occupy the whole tiling area, so that the maximized window can be placed in the column's slot
-            return this.grid.desktop.tilingArea.width;
+            return this.getFullWidth();
         }
         return this.width;
     }
@@ -122,7 +124,13 @@ class Column {
 
     public setWidth(width: number, setPreferred: boolean) {
         width = clamp(width, this.getMinWidth(), this.getMaxWidth());
+        if (!this.isFullWidthValue(width)) {
+            for (const window of this.windows.iterator()) {
+                window.restoreWidth = width;
+            }
+        }
         if (width === this.width) {
+            this.syncMaximized();
             return;
         }
 
@@ -133,6 +141,46 @@ class Column {
             }
         }
         this.grid.onColumnWidthChanged(this);
+        this.syncMaximized();
+    }
+
+    // same as the "100%" preset width
+    public getFullWidth() {
+        return Math.floor(this.grid.desktop.tilingArea.width);
+    }
+
+    public isFullWidth() {
+        return this.isFullWidthValue(this.width);
+    }
+
+    private isFullWidthValue(width: number) {
+        // tolerate rounding, tilingArea can have a fractional width with fractional scaling
+        return width >= this.grid.desktop.tilingArea.width - 1;
+    }
+
+    // with `maximizeFullWidthColumns`, a focused window alone in a 100%-width column is maximized, and vice versa
+    public syncMaximized() {
+        if (!this.grid.config.maximizeFullWidthColumns || this.syncingMaximized || this.windows.length() !== 1) {
+            return;
+        }
+        const window = this.windows.getFirst()!;
+        const kwinClient = window.client.kwinClient;
+        if (!window.ready || !kwinClient.maximizable || kwinClient.fullScreen) {
+            return;
+        }
+        const fullWidth = this.isFullWidth();
+        if (fullWidth === window.isFullyMaximized()) {
+            window.pendingMaximizedSync = false;
+            return;
+        }
+        if (!window.isFocused()) {
+            window.pendingMaximizedSync = true; // sync when focused
+            return;
+        }
+        window.pendingMaximizedSync = false;
+        this.syncingMaximized = true;
+        window.client.setMaximize(fullWidth, fullWidth);
+        this.syncingMaximized = false;
     }
 
     public adjustWidth(widthDelta: number, setPreferred: boolean) {
@@ -338,6 +386,7 @@ class Column {
                 this.grid.onColumnMaximizedChanged(this); // effective width changed
             }
             this.resizeWindows();
+            this.syncMaximized();
             if (windowToFocus !== null) {
                 switch (passFocus) {
                 case FocusPassing.Type.Immediate:

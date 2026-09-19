@@ -9,6 +9,7 @@ interface Config {
     stackOffsetY: number;
     manualScrollStep: number;
     presetWidths: string;
+    defaultColumnWidth: string;
     verticalResizeStep: number;
     offScreenOpacity: number;
     untileOnDrag: boolean;
@@ -16,6 +17,7 @@ interface Config {
     stackColumnsByDefault: boolean;
     resizeNeighborColumn: boolean;
     forceTilingForMaximizedWindows: boolean;
+    maximizeFullWidthColumns: boolean;
     reMaximize: boolean;
     skipSwitcher: boolean;
     scrollingLazy: boolean;

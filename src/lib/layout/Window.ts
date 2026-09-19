@@ -4,6 +4,10 @@ class Window {
     public height: number;
     public readonly focusedState: Window.State;
     private skipArrange: boolean;
+    public restoreWidth: number | undefined; // last column width below 100%, restored after manual unmaximization
+    private wasFullyMaximized: boolean;
+    public pendingMaximizedSync: boolean;
+    public ready: boolean; // whether signals of the client are handled, so it's safe to change its state
 
     constructor(client: ClientWrapper, column: Column) {
         this.client = client;
@@ -19,8 +23,20 @@ class Window {
         };
 
         this.skipArrange = this.client.kwinClient.fullScreen || maximizedMode !== MaximizedMode.Unmaximized;
+        this.restoreWidth = undefined;
+        this.wasFullyMaximized = this.isFullyMaximized();
+        this.ready = false;
+        this.pendingMaximizedSync = false;
         this.column = column;
         column.onWindowAdded(this, true);
+        if (column.grid.config.maximizeFullWidthColumns && this.wasFullyMaximized) {
+            column.setWidth(column.getFullWidth(), false);
+        }
+    }
+
+    public onReady() {
+        this.ready = true;
+        this.column.syncMaximized();
     }
 
     public moveToColumn(targetColumn: Column, bottom: boolean, passFocus: FocusPassing.Type) {
@@ -63,6 +79,11 @@ class Window {
 
     private moveMaximized(x: number) {
         const kwinClient = this.client.kwinClient;
+        if (kwinClient.maximizeMode !== undefined && kwinClient.maximizeMode !== this.client.getMaximizedMode()) {
+            // Kwin hasn't finished (un)maximizing yet, moving now would cancel it
+            // (the window is re-arranged on `maximizedChanged`)
+            return;
+        }
         if (this.isMaximizedHorizontally()) {
             const desktop = this.column.grid.desktop;
             const homeArea = Workspace.clientArea(
@@ -70,10 +91,18 @@ class Window {
                 kwinClient.output,
                 desktop.kwinDesktop,
             );
-            this.client.moveX(homeArea.x + x - desktop.tilingArea.x);
+            let targetX = homeArea.x + x - desktop.tilingArea.x;
+            if (Math.abs(targetX - homeArea.x) < 2) {
+                targetX = homeArea.x; // ignore rounding errors of fractional tiling area width
+            }
+            this.client.moveX(targetX);
         } else {
             this.client.moveX(x);
         }
+    }
+
+    public isFullyMaximized() {
+        return !this.client.kwinClient.fullScreen && this.client.getMaximizedMode() === MaximizedMode.Maximized;
     }
 
     public isMaximized() {
@@ -125,6 +154,9 @@ class Window {
             this.column.grid.desktop.forceArrange();
         }
         this.column.onWindowFocused(this);
+        if (this.pendingMaximizedSync) {
+            this.column.syncMaximized();
+        }
     }
 
     public raise() {
@@ -152,7 +184,25 @@ class Window {
             this.focusedState.maximizedMode = maximizedMode;
         }
         this.ensureOwnColumnIfMaximized();
+        if (this.column.grid.config.maximizeFullWidthColumns) {
+            this.syncWidthWithMaximized(maximizedMode);
+        }
         this.column.onWindowMaximizedChanged();
+    }
+
+    // maximized windows are treated as 100%-width columns
+    private syncWidthWithMaximized(maximizedMode: MaximizedMode) {
+        const fullyMaximized = maximizedMode === MaximizedMode.Maximized && !this.client.kwinClient.fullScreen;
+        const column = this.column;
+        const tilingAreaWidth = column.grid.desktop.tilingArea.width;
+        if (fullyMaximized) {
+            column.setWidth(column.getFullWidth(), false);
+        } else if (this.wasFullyMaximized && maximizedMode === MaximizedMode.Unmaximized && !this.client.isManipulatingGeometry(null)) {
+            // unmaximized by the user (not by Karousel), restore the previous width
+            const width = this.restoreWidth ?? column.grid.config.getDefaultColumnWidth(column.getMinWidth(), column.getMaxWidth(), tilingAreaWidth);
+            column.setWidth(width, true);
+        }
+        this.wasFullyMaximized = fullyMaximized;
     }
 
     public onFullScreenChanged(fullScreen: boolean) {
