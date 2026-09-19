@@ -192,6 +192,17 @@ class Grid {
         }
     }
 
+    public onColumnMaximizedChanged(column: Column) {
+        // the column's effective width depends on whether it contains a maximized window
+        const rightColumn = this.columns.getNext(column);
+        this.columnsSetX(rightColumn);
+        this.desktop.onLayoutChanged();
+        if (column.isFocused()) {
+            // don't scroll to a column that is losing focus (e.g. being restored to tiled)
+            this.desktop.autoAdjustScroll();
+        }
+    }
+
     public onColumnFocused(column: Column, window: Window) {
         const lastFocusedColumn = this.getLastFocusedColumn();
         if (lastFocusedColumn !== null) {

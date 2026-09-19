@@ -73,7 +73,20 @@ class Column {
     }
 
     public getWidth() {
+        if (this.isMaximizedHorizontally()) {
+            // occupy the whole tiling area, so that the maximized window can be placed in the column's slot
+            return this.grid.desktop.tilingArea.width;
+        }
         return this.width;
+    }
+
+    private isMaximizedHorizontally() {
+        for (const window of this.windows.iterator()) {
+            if (window.isMaximizedHorizontally()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public getMinWidth() {
@@ -137,7 +150,7 @@ class Column {
 
     // returns x position of right edge in grid space
     public getRight() {
-        return this.gridX + this.width;
+        return this.gridX + this.getWidth();
     }
 
     public onUserResizeWidth(
@@ -228,14 +241,14 @@ class Column {
         }
         let y = this.grid.desktop.tilingArea.y;
         for (const window of this.windows.iterator()) {
-            window.arrange(x, y, this.width, window.height);
+            window.arrange(x, y, this.getWidth(), window.height);
             y += window.height + this.grid.config.gapsInnerVertical;
         }
     }
 
     public arrangeStacked(x: number) {
         const nWindows = this.windows.length();
-        const windowWidth = this.width - (nWindows - 1) * this.grid.config.stackOffsetX;
+        const windowWidth = this.getWidth() - (nWindows - 1) * this.grid.config.stackOffsetX;
         const windowHeight = this.grid.desktop.tilingArea.height - (nWindows - 1) * this.grid.config.stackOffsetY;
 
         let windowX = x;
@@ -322,6 +335,10 @@ class Column {
         }
 
         this.grid.desktop.onLayoutChanged();
+    }
+
+    public onWindowMaximizedChanged() {
+        this.grid.onColumnMaximizedChanged(this);
     }
 
     public onWindowFocused(window: Window) {

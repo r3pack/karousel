@@ -44,6 +44,17 @@ class ClientWrapper {
         });
     }
 
+    // moves the window horizontally without changing its size or maximized state
+    public moveX(x: number) {
+        const frame = roundQtRect(this.kwinClient.frameGeometry);
+        if (frame.x === x) {
+            return;
+        }
+        this.manipulatingGeometry.do(() => {
+            this.kwinClient.frameGeometry = Qt.rect(x, frame.y, frame.width, frame.height);
+        });
+    }
+
     private moveTransient(dx: number, dy: number, kwinDesktops: KwinDesktop[]) {
         if (this.stateManager.getState() instanceof ClientState.Floating) {
             if (Clients.isOnOneOfVirtualDesktops(this.kwinClient, kwinDesktops)) {

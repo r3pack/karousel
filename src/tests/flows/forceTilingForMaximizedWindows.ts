@@ -17,7 +17,7 @@ for (const floatingAbove of [false, true]) {
                 qtMock.flushTimers();
                 Assert.equal(client.maximizeMode, expectedMode);
                 Assert.equal(window.client.getMaximizedMode(), expectedMode);
-                Assert.equal(window.column.getWidth(), 300);
+                Assert.equal(window.column.getWidth(), horizontal ? tilingArea.width : 300);
                 const maximizedFrame = new MockQmlRect(
                     horizontal ? screen.x : original.x,
                     vertical ? screen.y : original.y,

@@ -63,7 +63,7 @@ class MockKwinClient {
     }
 
     setMaximize(vertically: boolean, horizontally: boolean) {
-        this.windowed = !(vertically || horizontally);
+        this.windowed = !(vertically || horizontally) && !this._fullScreen;
 
         if (vertically === this._maximizedVertically && horizontally === this._maximizedHorizontally) {
             return;

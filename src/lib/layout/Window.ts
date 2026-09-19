@@ -34,7 +34,9 @@ class Window {
 
     public arrange(x: number, y: number, width: number, height: number) {
         if (this.skipArrange) {
-            // window is maximized, fullscreen, or being manually resized, prevent fighting with the user
+            // window is maximized or fullscreen, only move it to its column's slot,
+            // so that its horizontal position reflects the column order (e.g. for task manager sorting)
+            this.moveMaximized(x);
             return;
         }
 
@@ -57,6 +59,28 @@ class Window {
         if (!maximized) {
             this.client.place(x, y, width, height);
         }
+    }
+
+    private moveMaximized(x: number) {
+        const kwinClient = this.client.kwinClient;
+        if (this.isMaximizedHorizontally()) {
+            const desktop = this.column.grid.desktop;
+            const homeArea = Workspace.clientArea(
+                kwinClient.fullScreen ? ClientAreaOption.FullScreenArea : ClientAreaOption.MaximizeArea,
+                kwinClient.output,
+                desktop.kwinDesktop,
+            );
+            this.client.moveX(homeArea.x + x - desktop.tilingArea.x);
+        } else {
+            this.client.moveX(x);
+        }
+    }
+
+    public isMaximizedHorizontally() {
+        const maximizedMode = this.client.getMaximizedMode();
+        return this.client.kwinClient.fullScreen ||
+            maximizedMode === MaximizedMode.Horizontally ||
+            maximizedMode === MaximizedMode.Maximized;
     }
 
     public focus() {
@@ -108,7 +132,7 @@ class Window {
         if (this.isFocused()) {
             this.focusedState.maximizedMode = maximizedMode;
         }
-        this.column.grid.desktop.onLayoutChanged();
+        this.column.onWindowMaximizedChanged();
     }
 
     public onFullScreenChanged(fullScreen: boolean) {
@@ -122,7 +146,7 @@ class Window {
         if (this.isFocused()) {
             this.focusedState.fullScreen = fullScreen;
         }
-        this.column.grid.desktop.onLayoutChanged();
+        this.column.onWindowMaximizedChanged();
     }
 
     public onFrameGeometryChanged() {
