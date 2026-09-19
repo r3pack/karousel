@@ -1,3 +1,5 @@
+# local installation only (`kpackagetool6 --show` also finds system-wide packages)
+INSTALL_DIR = $(or $(XDG_DATA_HOME),$(HOME)/.local/share)/kwin/scripts/karousel
 VERSION = $(shell grep '"Version":' ./package/metadata.json | grep -o '[0-9\.]*')
 
 .PHONY: *
@@ -20,7 +22,7 @@ test:
 	./run-ts.sh ./src/tests "${PATTERN}"
 
 install: build
-	if kpackagetool6 --type=KWin/Script --show=karousel >/dev/null 2>&1; then \
+	if [ -d "$(INSTALL_DIR)" ]; then \
 		kpackagetool6 --type=KWin/Script --upgrade=./package; \
 	else \
 		kpackagetool6 --type=KWin/Script --install=./package; \
