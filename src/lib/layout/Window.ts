@@ -195,7 +195,10 @@ class Window {
         const fullyMaximized = maximizedMode === MaximizedMode.Maximized && !this.client.kwinClient.fullScreen;
         const column = this.column;
         const tilingAreaWidth = column.grid.desktop.tilingArea.width;
-        if (fullyMaximized) {
+        if (this.isScreenChanging()) {
+            // Kwin may restore the maximized state saved for another screen setup, keep the column width
+            this.pendingMaximizedSync = true;
+        } else if (fullyMaximized) {
             column.setWidth(column.getFullWidth(), false);
         } else if (this.wasFullyMaximized && maximizedMode === MaximizedMode.Unmaximized && !this.client.isManipulatingGeometry(null)) {
             // unmaximized by the user (not by Karousel), restore the previous width
@@ -220,7 +223,18 @@ class Window {
         this.column.onWindowMaximizedChanged();
     }
 
+    // Kwin moves, resizes and (un)maximizes windows when screens change, sometimes before notifying us
+    private isScreenChanging() {
+        const desktop = this.column.grid.desktop;
+        return this.client.kwinClient.output !== desktop.getScreen() || desktop.isClientAreaSettling();
+    }
+
     public onFrameGeometryChanged() {
+        if (this.isScreenChanging()) {
+            // resized by Kwin, keep the column width
+            this.column.grid.desktop.onLayoutChanged();
+            return;
+        }
         const newGeometry = this.client.kwinClient.frameGeometry;
         this.column.setWidth(newGeometry.width.round(), true);
         this.column.grid.desktop.onLayoutChanged();

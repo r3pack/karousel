@@ -7,12 +7,14 @@ class Desktop {
     private dirtyPins: boolean;
     public clientArea: QmlRect;
     public tilingArea: QmlRect;
+    private clientAreaChangedTime: number;
+    private static readonly clientAreaSettleMs = 1000;
 
     constructor(
         public readonly kwinDesktop: KwinDesktop,
         private readonly pinManager: PinManager,
         private readonly config: Desktop.Config,
-        private readonly getScreen: () => Output,
+        public readonly getScreen: () => Output,
         layoutConfig: LayoutConfig,
         focusPasser: FocusPassing.Passer,
     ) {
@@ -21,6 +23,7 @@ class Desktop {
         this.dirty = true;
         this.dirtyScroll = true;
         this.dirtyPins = true;
+        this.clientAreaChangedTime = -Infinity;
         this.grid = new Grid(this, layoutConfig, focusPasser);
         this.clientArea = Desktop.getClientArea(this.getScreen(), kwinDesktop);
         this.tilingArea = Desktop.getTilingArea(this.clientArea, kwinDesktop, pinManager, config);
@@ -28,8 +31,12 @@ class Desktop {
 
     private updateArea() {
         const newClientArea = Desktop.getClientArea(this.getScreen(), this.kwinDesktop);
-        if (rectEquals(newClientArea, this.clientArea) && !this.dirtyPins) {
+        const clientAreaChanged = !rectEquals(newClientArea, this.clientArea);
+        if (!clientAreaChanged && !this.dirtyPins) {
             return;
+        }
+        if (clientAreaChanged) {
+            this.clientAreaChangedTime = Date.now();
         }
         this.clientArea = newClientArea;
         this.tilingArea = Desktop.getTilingArea(newClientArea, this.kwinDesktop, this.pinManager, this.config);
@@ -38,6 +45,12 @@ class Desktop {
         this.dirtyPins = false;
         this.grid.onScreenSizeChanged();
         this.autoAdjustScroll();
+    }
+
+    // whether the screen has changed recently, Kwin moves and resizes windows to fit them on the new screen
+    public isClientAreaSettling() {
+        this.updateArea();
+        return Date.now() - this.clientAreaChangedTime < Desktop.clientAreaSettleMs;
     }
 
     private static getClientArea(screen: Output, kwinDesktop: KwinDesktop) {

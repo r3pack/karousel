@@ -14,6 +14,7 @@ class World {
             next: (currentWidth: number, minWidth: number, maxWidth: number, tilingAreaWidth: number) => currentWidth,
             prev: (currentWidth: number, minWidth: number, maxWidth: number, tilingAreaWidth: number) => currentWidth,
             getWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number): number[] => [],
+            getIndexedWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number): number[] => [],
         };
         try {
             presetWidths = new PresetWidths(config.presetWidths, config.gapsInnerHorizontal);
@@ -60,6 +61,8 @@ class World {
             roundWidthToPreset: config.roundWidthToPreset,
             getPresetWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
                 presetWidths.getWidths(minWidth, maxWidth, tilingAreaWidth),
+            getIndexedPresetWidths: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
+                presetWidths.getIndexedWidths(minWidth, maxWidth, tilingAreaWidth),
             getDefaultColumnWidth: (minWidth: number, maxWidth: number, tilingAreaWidth: number) =>
                 defaultColumnWidth.getWidths(minWidth, maxWidth, tilingAreaWidth)[0],
             reMaximize: config.reMaximize,

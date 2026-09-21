@@ -73,7 +73,12 @@ namespace ClientState {
             if (kwinClient.maximizedChanged !== undefined) {
                 manager.connect(kwinClient.maximizedChanged, () => {
                     // Kwin may have restored the pre-maximize geometry, put the window back into its place
-                    world.do(() => window.column.grid.desktop.forceArrange());
+                    world.do(() => {
+                        window.column.grid.desktop.forceArrange();
+                        if (window.pendingMaximizedSync) {
+                            window.column.syncMaximized();
+                        }
+                    });
                 });
             }
 

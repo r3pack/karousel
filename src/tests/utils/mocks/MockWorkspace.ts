@@ -8,6 +8,7 @@ class MockWorkspace {
     ];
     public currentActivity = this.activities[0];
     public activeScreen: Output = { __brand: "Output" };
+    public readonly screenAreas = new Map<Output, MockQmlRect>(); // overrides the global `screen` for specific screens
     public readonly windows: MockKwinClient[] = [];
     public cursorPos = new MockQmlPoint(0, 0);
 
@@ -25,7 +26,7 @@ class MockWorkspace {
     public readonly virtualScreenSizeChanged = new MockQSignal<[]>();
 
     public clientArea(option: ClientAreaOption, output: Output, kwinDesktop: KwinDesktop) {
-        return screen;
+        return this.screenAreas.get(output) ?? screen;
     }
 
     public raiseWindow(kwinClient: KwinClient) {}

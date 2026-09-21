@@ -2,6 +2,7 @@ class Column {
     public grid: Grid;
     public gridX: number;
     private width: number; // TODO: increase column width to contain transients
+    private preset: number|"full"|null; // the preset (index) that `width` corresponds to, kept when the tiling area changes
     private readonly windows: LinkedList<Window>;
     private stacked: boolean;
     private focusTaker: Window|null;
@@ -11,6 +12,7 @@ class Column {
     constructor(grid: Grid, leftColumn: Column|null) {
         this.gridX = 0;
         this.width = 0;
+        this.preset = null;
         this.windows = new LinkedList();
         this.stacked = grid.config.stackColumnsByDefault;
         this.focusTaker = null;
@@ -127,6 +129,7 @@ class Column {
         if (!this.grid.isUserResizing()) {
             width = this.roundToPreset(width);
         }
+        this.preset = this.findPreset(width);
         if (!this.isFullWidthValue(width)) {
             for (const window of this.windows.iterator()) {
                 window.restoreWidth = width;
@@ -171,6 +174,32 @@ class Column {
             }
         }
         return nearestWidth;
+    }
+
+    private findPreset(width: number): number|"full"|null {
+        const tolerance = 1; // Kwin may round window sizes by 1px with fractional scaling
+        const presetWidths = this.grid.config.getIndexedPresetWidths(this.getMinWidth(), this.getMaxWidth(), this.grid.desktop.tilingArea.width);
+        const matches = (index: number) => Math.abs(presetWidths[index] - width) <= tolerance;
+        if (typeof this.preset === "number" && matches(this.preset)) {
+            return this.preset; // several presets can have the same width (e.g. clamped by the min width), keep the current one
+        }
+        if (this.isFullWidthValue(width)) {
+            return "full";
+        }
+        const index = presetWidths.findIndex((_, i) => matches(i));
+        return index >= 0 ? index : null;
+    }
+
+    // if the width corresponds to a preset, re-applies that preset (e.g. after the tiling area has changed)
+    public applyPreset() {
+        if (this.preset === null) {
+            return false;
+        }
+        const width = this.preset === "full" ?
+            this.getFullWidth() :
+            this.grid.config.getIndexedPresetWidths(this.getMinWidth(), this.getMaxWidth(), this.grid.desktop.tilingArea.width)[this.preset];
+        this.setWidth(width, false);
+        return true;
     }
 
     public snapToPreset() {

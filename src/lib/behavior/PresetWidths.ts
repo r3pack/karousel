@@ -19,9 +19,14 @@ class PresetWidths {
     }
 
     public getWidths(minWidth: number, maxWidth: number, tilingAreaWidth: number) {
-        const widths = this.presets.map(f => clamp(f(tilingAreaWidth), minWidth, maxWidth));
+        const widths = this.getIndexedWidths(minWidth, maxWidth, tilingAreaWidth);
         widths.sort((a, b) => a - b);
         return uniq(widths);
+    }
+
+    // returns one width per preset, in the configured order
+    public getIndexedWidths(minWidth: number, maxWidth: number, tilingAreaWidth: number) {
+        return this.presets.map(f => clamp(f(tilingAreaWidth), minWidth, maxWidth));
     }
 
     private static parsePresetWidths(presetWidths: string, spacing: number): ((tilingAreaWidth: number) => number)[] {

@@ -11,7 +11,7 @@ class MockKwinClient {
     public resize = false;
     public readonly fullScreenable: boolean = true;
     public readonly maximizable: boolean = true;
-    public readonly output: Output = { __brand: "Output" };
+    public output: Output = Workspace.activeScreen;
     public resourceClass = "app";
     public readonly dock: boolean = false;
     public readonly normalWindow: boolean = true;
